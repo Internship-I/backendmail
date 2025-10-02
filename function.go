@@ -40,7 +40,7 @@ func GenerateConnote() string {
 	return fmt.Sprintf("P%s%07d", timestamp, randomNum)
 }
 
-func InsertTransaction(sender, receiver, phone, item, status string) (interface{}, error) {
+func InsertTransaction(sender, receiver, phone, item, status string, codValue float64) (interface{}, error) {
     now := primitive.NewDateTimeFromTime(time.Now())
     connote := GenerateConnote()
 
@@ -52,6 +52,7 @@ func InsertTransaction(sender, receiver, phone, item, status string) (interface{
         PhoneNumber:    phone,
         ItemContent:    item,
         DeliveryStatus: status,
+		CODValue: 		codValue,
         CreatedAt:      now,
         UpdatedAt:      now,
     }

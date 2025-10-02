@@ -6,13 +6,14 @@ import (
 )
 
 func TestInsertTransaction(t *testing.T) {
-	SenderName := "Nida"
-	ReceiverName := "Qinthar"
+	SenderName := "Hanif"
+	ReceiverName := "Jaka"
 	PhoneNumber := "083174603834"
-	Item_Content := "Makanan"
-	DeliveryStatus := "On Process"
+	CODValue := 125000.0
+	Item_Content := "Sepatu"
+	DeliveryStatus := "On Procces"
 
-	insertedID, err := InsertTransaction(SenderName, ReceiverName, PhoneNumber, Item_Content, DeliveryStatus)
+	insertedID, err := InsertTransaction(SenderName, ReceiverName, PhoneNumber, Item_Content, DeliveryStatus, CODValue)
 	if err != nil {
 		t.Fatal("InsertTransaction gagal:", err)
 	}
@@ -43,7 +44,7 @@ func TestGetByConsignmentNote(t *testing.T) {
 }
 
 func TestGetByPhoneNumber(t *testing.T) {
-	phone := "083174603834" // ganti dengan nomor hp yang ada di database
+	phone := "083174603834"
 	results := GetByPhoneNumber(phone)
 
 	if len(results) == 0 {
@@ -53,7 +54,7 @@ func TestGetByPhoneNumber(t *testing.T) {
 }
 
 func TestGetByName(t *testing.T) {
-	name := "nid" // cukup sebagian aja, regex akan tetap match misal "Dewi"
+	name := "nid"
 	results := GetByName(name)
 
 	if len(results) == 0 {
