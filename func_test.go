@@ -6,14 +6,15 @@ import (
 )
 
 func TestInsertTransaction(t *testing.T) {
-	SenderName := "Hanif"
-	ReceiverName := "Jaka"
-	PhoneNumber := "083174603834"
-	CODValue := 125000.0
-	Item_Content := "Sepatu"
-	DeliveryStatus := "On Procces"
+	SenderName := "Hani"
+	ReceiverName := "Kibo"
+	AddressReceiver := "Jakarta"
+	PhoneNumber := "09876643"
+	CODValue := 75000.0
+	Item_Content := "Makanan"
+	DeliveryStatus := "Delivered"
 
-	insertedID, err := InsertTransaction(SenderName, ReceiverName, PhoneNumber, Item_Content, DeliveryStatus, CODValue)
+	insertedID, err := InsertTransaction(SenderName, ReceiverName, AddressReceiver, PhoneNumber, Item_Content, DeliveryStatus, CODValue)
 	if err != nil {
 		t.Fatal("InsertTransaction gagal:", err)
 	}
@@ -21,10 +22,6 @@ func TestInsertTransaction(t *testing.T) {
 	if insertedID == nil {
 		t.Fatal("InsertTransaction gagal, InsertedID nil")
 	}
-
-	// if hasil.ConsigmentNote == "" {
-	// 	t.Fatal("ConsigmentNote gagal tergenerate")
-	// }
 }
 
 func TestGetAllTransaction(t *testing.T) {
@@ -61,4 +58,19 @@ func TestGetByName(t *testing.T) {
 		t.Fatalf("GetByName gagal, data dengan nama %s tidak ditemukan", name)
 	}
 	fmt.Println("Hasil pencarian berdasarkan nama:", results)
+}
+
+func TestGetByAddress(t *testing.T) {
+	results, err := GetByAddress("Jakarta")
+	if err != nil {
+		t.Fatal("Error GetByAddress:", err)
+	}
+
+	if len(results) == 0 {
+		t.Fatal("Tidak ada transaksi dengan alamat tersebut")
+	}
+
+	for _, r := range results {
+		fmt.Println("Hasil:", r.ReceiverName, "-", r.AddressReceiver)
+	}
 }

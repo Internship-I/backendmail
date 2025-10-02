@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"math/rand"
 	"os"
+	"regexp"
 	"time"
 
 	"go.mongodb.org/mongo-driver/bson"
@@ -40,21 +41,22 @@ func GenerateConnote() string {
 	return fmt.Sprintf("P%s%07d", timestamp, randomNum)
 }
 
-func InsertTransaction(sender, receiver, phone, item, status string, codValue float64) (interface{}, error) {
+func InsertTransaction(sender, receiver, address_receiver, phone, item, status string, codValue float64) (interface{}, error) {
     now := primitive.NewDateTimeFromTime(time.Now())
     connote := GenerateConnote()
 
     newTx := &Transaction{
         ID:             primitive.NewObjectID(),
-        ConsigmentNote: connote,
-        SenderName:     sender,
-        ReceiverName:   receiver,
-        PhoneNumber:    phone,
-        ItemContent:    item,
-        DeliveryStatus: status,
-		CODValue: 		codValue,
-        CreatedAt:      now,
-        UpdatedAt:      now,
+        ConsigmentNote: 	connote,
+        SenderName:     	sender,
+        ReceiverName:   	receiver,
+		AddressReceiver: 	address_receiver,
+        PhoneNumber:    	phone,
+        ItemContent:    	item,
+        DeliveryStatus: 	status,
+		CODValue: 			codValue,
+        CreatedAt:      	now,
+        UpdatedAt:      	now,
     }
 
     insertedID := InsertOneDoc("Internship1", "MailApp", newTx)
@@ -139,4 +141,35 @@ func GetByName(name string) []Transaction {
 		return nil
 	}
 	return results
+}
+
+// GetByAddress mencari transaksi berdasarkan alamat penerima
+func GetByAddress(address string) ([]Transaction, error) {
+	var results []Transaction
+
+	// Koneksi ke collection
+	collection := MongoConnect("Internship1").Collection("MailApp")
+
+	regexPattern := fmt.Sprintf(".*%s.*", regexp.QuoteMeta(address))
+	filter := bson.M{
+		"address_receiver": bson.M{
+			"$regex":   regexPattern,
+			"$options": "i", // ignore case
+		},
+	}
+
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	cursor, err := collection.Find(ctx, filter)
+	if err != nil {
+		return nil, err
+	}
+	defer cursor.Close(ctx)
+
+	if err := cursor.All(ctx, &results); err != nil {
+		return nil, err
+	}
+
+	return results, nil
 }
