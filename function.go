@@ -3,6 +3,7 @@ package mailApp
 import (
 	"context"
 	"fmt"
+	"math/rand"
 	"os"
 	"time"
 
@@ -33,16 +34,37 @@ func InsertOneDoc(db string, collection string, doc interface{}) (insertedID int
 
 }
 
-func InsertTransaction(connote string, tracking_number string, phone_number string, item_content string, delivery_status string) (insertedID interface{}) {
-	var transaction Transaction
-	transaction.ConsigmentNote = connote
-	transaction.TrackingNumber = tracking_number
-	transaction.PhoneNumber = phone_number
-	transaction.Item_Content = item_content
-	transaction.DeliveryStatus = delivery_status
-	transaction.CreatedAt = primitive.NewDateTimeFromTime(time.Now())
-	transaction.UpdatedAt = primitive.NewDateTimeFromTime(time.Now())
-	return InsertOneDoc("Internship1", "MailApp", transaction)
+func GenerateConnote() string {
+	timestamp := time.Now().Format("020106") // format: ddmmyy
+	randomNum := rand.Intn(9999999) //random 7 digit
+	return fmt.Sprintf("P%s%07d", timestamp, randomNum)
+}
+
+func InsertTransaction(sender, receiver, phone, item, status string) (interface{}, error) {
+    now := primitive.NewDateTimeFromTime(time.Now())
+    connote := GenerateConnote()
+
+    newTx := &Transaction{
+        ID:             primitive.NewObjectID(),
+        ConsigmentNote: connote,
+        SenderName:     sender,
+        ReceiverName:   receiver,
+        PhoneNumber:    phone,
+        ItemContent:    item,
+        DeliveryStatus: status,
+        CreatedAt:      now,
+        UpdatedAt:      now,
+    }
+
+    insertedID := InsertOneDoc("Internship1", "MailApp", newTx)
+	if insertedID == nil {
+		return nil, fmt.Errorf("gagal insert data")
+	}
+
+	// Print konfirmasi sekali aja
+	fmt.Printf("✅ Data berhasil dimasukkan dengan ID: %v\n", insertedID)
+
+	return insertedID, nil
 }
 
 func GetAllTransaction() (data []Transaction) {
@@ -57,4 +79,63 @@ func GetAllTransaction() (data []Transaction) {
 		fmt.Println(err)
 	}
 	return
+}
+
+// Get transaction by Consignment Note (resi)
+func GetByConsignmentNote(connote string) *Transaction {
+	transaction := MongoConnect("Internship1").Collection("MailApp")
+	filter := bson.M{"connote": connote}
+
+	var result Transaction
+	err := transaction.FindOne(context.TODO(), filter).Decode(&result)
+	if err != nil {
+		fmt.Println("GetByConsignmentNote error:", err)
+		return nil
+	}
+	return &result
+}
+
+// Get transactions by Phone Number
+func GetByPhoneNumber(phone string) []Transaction {
+	transaction := MongoConnect("Internship1").Collection("MailApp")
+	filter := bson.M{"phone_number": phone}
+
+	var results []Transaction
+	cursor, err := transaction.Find(context.TODO(), filter)
+	if err != nil {
+		fmt.Println("GetByPhoneNumber error:", err)
+		return nil
+	}
+	err = cursor.All(context.TODO(), &results)
+	if err != nil {
+		fmt.Println("Cursor decode error:", err)
+		return nil
+	}
+	return results
+}
+
+// Get transactions by either Sender Name or Receiver Name (with regex search)
+func GetByName(name string) []Transaction {
+	transaction := MongoConnect("Internship1").Collection("MailApp")
+
+	// filter dengan regex (case-insensitive)
+	filter := bson.M{
+		"$or": []bson.M{
+			{"sender_name": bson.M{"$regex": name, "$options": "i"}},
+			{"receiver_name": bson.M{"$regex": name, "$options": "i"}},
+		},
+	}
+
+	var results []Transaction
+	cursor, err := transaction.Find(context.TODO(), filter)
+	if err != nil {
+		fmt.Println("GetByName error:", err)
+		return nil
+	}
+	err = cursor.All(context.TODO(), &results)
+	if err != nil {
+		fmt.Println("Cursor decode error:", err)
+		return nil
+	}
+	return results
 }
