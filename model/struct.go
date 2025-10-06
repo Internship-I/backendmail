@@ -1,6 +1,8 @@
-package mailApp
+package model
 
 import (
+	"time"
+
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
@@ -16,4 +18,20 @@ type Transaction struct {
 	CODValue       	float64            `bson:"cod_value,omitempty" json:"cod_value,omitempty"`
 	CreatedAt      	primitive.DateTime `bson:"created_at,omitempty" json:"created_at,omitempty"`
 	UpdatedAt      	primitive.DateTime `bson:"updated_at,omitempty" json:"updated_at,omitempty"`
+}
+
+type User struct {
+	ID                     primitive.ObjectID `bson:"_id,omitempty" json:"_id,omitempty"`
+	FullName               string             `bson:"name,omitempty" json:"name,omitempty"`
+	PhoneNumber            string             `bson:"phone,omitempty" json:"phone,omitempty"`
+	Username               string             `bson:"username,omitempty" json:"username,omitempty"`
+	Password               string             `bson:"password,omitempty" json:"password,omitempty"`
+	Role                   string             `bson:"role,omitempty" json:"role,omitempty"` // "admin" or "kurir"
+}
+
+type Token struct {
+	ID        string    `bson:"_id,omitempty" json:"_id,omitempty"`
+	Token     string    `bson:"token" json:"token,omitempty"`
+	AdminID   string    `bson:"admin_id" json:"admin_id,omitempty"`
+	CreatedAt time.Time `bson:"created_at" json:"created_at"`
 }
