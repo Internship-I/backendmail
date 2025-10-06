@@ -31,10 +31,10 @@ func TestInsertTransaction(t *testing.T) {
 	fmt.Printf("✅ TestInsertTransaction berhasil dengan ID: %v\n", insertedID)
 }
 
-// func TestGetAllTransaction(t *testing.T) {
-// 	data := module.GetAllTransaction(module.MongoConn, "MailApp")
-// 	fmt.Println(data)
-// }
+func TestGetAllTransaction(t *testing.T) {
+	data := module.GetAllTransaction(module.MongoConn, "MailApp")
+	fmt.Println(data)
+}
 
 // func TestGetByConsignmentNote(t *testing.T) {
 // 	db := module.MongoConn

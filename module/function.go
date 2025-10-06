@@ -7,7 +7,7 @@ import (
 	// "regexp"
 	"time"
 
-	// "github.com/internship1/backendmail/model"
+	"github.com/internship1/backendmail/model"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 
@@ -68,19 +68,20 @@ func InsertTransaction(db *mongo.Database, col string, sender string, receiver s
 	return insertedID, nil
 }
 
-// func GetAllTransaction() (data []Transaction) {
-// 	transaction := MongoConnect("Internship1").Collection("MailApp")
-// 	filter := bson.M{}
-// 	cursor, err := transaction.Find(context.TODO(), filter)
-// 	if err != nil {
-// 		fmt.Println("GetAllTransaction :", err)
-// 	}
-// 	err = cursor.All(context.TODO(), &data)
-// 	if err != nil {
-// 		fmt.Println(err)
-// 	}
-// 	return
-// }
+// GetAllTransaction retrieves all transaction from the database
+func GetAllTransaction(db *mongo.Database, col string) (data []model.Transaction) {
+	transaction := db.Collection(col)
+	filter := bson.M{}
+	cursor, err := transaction.Find(context.TODO(), filter)
+	if err != nil {
+		fmt.Println("GetAllTransaction :", err)
+	}
+	err = cursor.All(context.TODO(), &data)
+	if err != nil {
+		fmt.Println(err)
+	}
+	return
+}
 
 // // Get transaction by Consignment Note (resi)
 // func GetByConsignmentNote(connote string) *Transaction {
