@@ -83,19 +83,32 @@ func GetAllTransaction(db *mongo.Database, col string) (data []model.Transaction
 	return
 }
 
-// // Get transaction by Consignment Note (resi)
-// func GetByConsignmentNote(connote string) *Transaction {
-// 	transaction := MongoConnect("Internship1").Collection("MailApp")
-// 	filter := bson.M{"connote": connote}
+// GetTransactionByConnote retrieves transactions by consignment note
+func GetTransactionByConnote(connote string, db *mongo.Database, col string) ([]model.Transaction, error) {
+	var transactions []model.Transaction
+	collection := db.Collection(col)
+	filter := bson.M{"consignment_note": connote}
 
-// 	var result Transaction
-// 	err := transaction.FindOne(context.TODO(), filter).Decode(&result)
-// 	if err != nil {
-// 		fmt.Println("GetByConsignmentNote error:", err)
-// 		return nil
-// 	}
-// 	return &result
-// }
+	cursor, err := collection.Find(context.TODO(), filter, options.Find())
+	if err != nil {
+		return nil, fmt.Errorf("gagal mendapatkan transaction: %w", err)
+	}
+	defer cursor.Close(context.TODO())
+
+	for cursor.Next(context.TODO()) {
+		var t model.Transaction
+		if err := cursor.Decode(&t); err != nil {
+			continue
+		}
+		transactions = append(transactions, t)
+	}
+
+	if len(transactions) == 0 {
+		return nil, fmt.Errorf("transaction dengan connote %s tidak ditemukan", connote)
+	}
+
+	return transactions, nil
+}
 
 // // Get transactions by Phone Number
 // func GetByPhoneNumber(phone string) []Transaction {

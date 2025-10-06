@@ -36,21 +36,21 @@ func TestGetAllTransaction(t *testing.T) {
 	fmt.Println(data)
 }
 
-// func TestGetByConsignmentNote(t *testing.T) {
-// 	db := module.MongoConn
-// 	col := "MailApp"
+func TestGetByConsignmentNote(t *testing.T) {
+	db := module.MongoConn
+	col := "MailApp" // ganti sesuai nama collection
 
-// 	// Gunakan consignment note yang ada di database
-// 	connote := "P06102501234567" // ganti sesuai data nyata atau hasil InsertTransaction
+	// Gunakan consignment note yang ada di database
+	connote := "P0610253848524" // ganti sesuai data nyata atau hasil InsertTransaction
 
-// 	transactions, err := module.GetByConsignmentNote(db, col, connote)
-// 	if err != nil {
-// 		t.Fatalf("error calling GetByConsignmentNote: %v", err)
-// 	}
+	transactions, err := module.GetTransactionByConnote(connote, db, col)
+	if err != nil {
+		t.Fatalf("error calling GetByConsignmentNote: %v", err)
+	}
 
-// 	fmt.Printf("Ditemukan %d transaksi:\n", len(transactions))
-// 	for _, tx := range transactions {
-// 		fmt.Println(tx)
-// 	}
-// }
+	fmt.Printf("Ditemukan %d transaksi:\n", len(transactions))
+	for _, tx := range transactions {
+		fmt.Printf("%+v\n", tx)
+	}
+}
 
