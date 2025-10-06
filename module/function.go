@@ -110,78 +110,89 @@ func GetTransactionByConnote(connote string, db *mongo.Database, col string) ([]
 	return transactions, nil
 }
 
-// // Get transactions by Phone Number
-// func GetByPhoneNumber(phone string) []Transaction {
-// 	transaction := MongoConnect("Internship1").Collection("MailApp")
-// 	filter := bson.M{"phone_number": phone}
+// GetTransactionByPhoneNumber retrieves transactions by phone number
+func GetByPhoneNumber(phone string, db *mongo.Database, col string) ([]model.Transaction, error) {
+	var transactions []model.Transaction
+	collection := db.Collection(col)
+	filter := bson.M{"phone_number": phone}
 
-// 	var results []Transaction
-// 	cursor, err := transaction.Find(context.TODO(), filter)
-// 	if err != nil {
-// 		fmt.Println("GetByPhoneNumber error:", err)
-// 		return nil
-// 	}
-// 	err = cursor.All(context.TODO(), &results)
-// 	if err != nil {
-// 		fmt.Println("Cursor decode error:", err)
-// 		return nil
-// 	}
-// 	return results
-// }
+	cursor, err := collection.Find(context.TODO(), filter, options.Find())
+	if err != nil {
+		return nil, fmt.Errorf("gagal mendapatkan transaction: %w", err)
+	}
+	defer cursor.Close(context.TODO())
 
-// // Get transactions by either Sender Name or Receiver Name (with regex search)
-// func GetByName(name string) []Transaction {
-// 	transaction := MongoConnect("Internship1").Collection("MailApp")
+	for cursor.Next(context.TODO()) {
+		var t model.Transaction
+		if err := cursor.Decode(&t); err != nil {
+			continue
+		}
+		transactions = append(transactions, t)
+	}
 
-// 	// filter dengan regex (case-insensitive)
-// 	filter := bson.M{
-// 		"$or": []bson.M{
-// 			{"sender_name": bson.M{"$regex": name, "$options": "i"}},
-// 			{"receiver_name": bson.M{"$regex": name, "$options": "i"}},
-// 		},
-// 	}
+	if len(transactions) == 0 {
+		return nil, fmt.Errorf("transaction dengan nomor hp %s tidak ditemukan", phone)
+	}
 
-// 	var results []Transaction
-// 	cursor, err := transaction.Find(context.TODO(), filter)
-// 	if err != nil {
-// 		fmt.Println("GetByName error:", err)
-// 		return nil
-// 	}
-// 	err = cursor.All(context.TODO(), &results)
-// 	if err != nil {
-// 		fmt.Println("Cursor decode error:", err)
-// 		return nil
-// 	}
-// 	return results
-// }
+	return transactions, nil
+}
 
-// // GetByAddress mencari transaksi berdasarkan alamat penerima
-// func GetByAddress(address string) ([]Transaction, error) {
-// 	var results []Transaction
+// GetTransactionByAddress retrieves transactions by address
+func GetByAddress(addressReceiver string, db *mongo.Database, col string) ([]model.Transaction, error) {
+	var transactions []model.Transaction
+	collection := db.Collection(col)
+	filter := bson.M{"address_receiver": addressReceiver}
 
-// 	// Koneksi ke collection
-// 	collection := MongoConnect("Internship1").Collection("MailApp")
+	cursor, err := collection.Find(context.TODO(), filter, options.Find())
+	if err != nil {
+		return nil, fmt.Errorf("gagal mendapatkan transaction: %w", err)
+	}
+	defer cursor.Close(context.TODO())
 
-// 	regexPattern := fmt.Sprintf(".*%s.*", regexp.QuoteMeta(address))
-// 	filter := bson.M{
-// 		"address_receiver": bson.M{
-// 			"$regex":   regexPattern,
-// 			"$options": "i", // ignore case
-// 		},
-// 	}
+	for cursor.Next(context.TODO()) {
+		var t model.Transaction
+		if err := cursor.Decode(&t); err != nil {
+			continue
+		}
+		transactions = append(transactions, t)
+	}
 
-// 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
-// 	defer cancel()
+	if len(transactions) == 0 {
+		return nil, fmt.Errorf("transaction dengan alamat %s tidak ditemukan", addressReceiver)
+	}
 
-// 	cursor, err := collection.Find(ctx, filter)
-// 	if err != nil {
-// 		return nil, err
-// 	}
-// 	defer cursor.Close(ctx)
+	return transactions, nil
+}
 
-// 	if err := cursor.All(ctx, &results); err != nil {
-// 		return nil, err
-// 	}
+// GetBySenderOrReceiver retrieves transactions by either sender or receiver name
+func GetBySenderOrReceiver(name string, db *mongo.Database, col string) ([]model.Transaction, error) {
+	var transactions []model.Transaction
+	collection := db.Collection(col)
 
-// 	return results, nil
-// }
+	filter := bson.M{
+		"$or": []bson.M{
+			{"sender_name": name},
+			{"receiver_name": name},
+		},
+	}
+
+	cursor, err := collection.Find(context.TODO(), filter, options.Find())
+	if err != nil {
+		return nil, fmt.Errorf("gagal mendapatkan transaction: %w", err)
+	}
+	defer cursor.Close(context.TODO())
+
+	for cursor.Next(context.TODO()) {
+		var t model.Transaction
+		if err := cursor.Decode(&t); err != nil {
+			continue
+		}
+		transactions = append(transactions, t)
+	}
+
+	if len(transactions) == 0 {
+		return nil, fmt.Errorf("transaction dengan sender atau receiver %s tidak ditemukan", name)
+	}
+
+	return transactions, nil
+}

@@ -54,3 +54,58 @@ func TestGetByConsignmentNote(t *testing.T) {
 	}
 }
 
+// TestGetByPhoneNumber
+func TestGetByPhoneNumber(t *testing.T) {
+	db := module.MongoConn
+	col := "MailApp" // ganti sesuai nama collection
+
+	// Gunakan consignment note yang ada di database
+	phone := "083867818081" // ganti sesuai data nyata atau hasil InsertTransaction
+
+	transactions, err := module.GetByPhoneNumber(phone, db, col)
+	if err != nil {
+		t.Fatalf("error calling GetByPhoneNumber: %v", err)
+	}
+
+	fmt.Printf("Ditemukan %d transaksi:\n", len(transactions))
+	for _, tx := range transactions {
+		fmt.Printf("%+v\n", tx)
+	}
+}
+
+// TestGetByAddress
+func TestGetByAddress(t *testing.T) {
+	db := module.MongoConn
+	col := "MailApp" // ganti sesuai nama collection
+
+	// Gunakan consignment note yang ada di database
+	addressReceiver := "Jakarta" // ganti sesuai data nyata atau hasil InsertTransaction
+
+	transactions, err := module.GetByAddress(addressReceiver, db, col)
+	if err != nil {
+		t.Fatalf("error calling GetByAddress: %v", err)
+	}
+
+	fmt.Printf("Ditemukan %d transaksi:\n", len(transactions))
+	for _, tx := range transactions {
+		fmt.Printf("%+v\n", tx)
+	}
+}
+
+// TestGetBySenderOrReceiver
+func TestGetBySenderOrReceiver(t *testing.T) {
+	db := module.MongoConn
+	col := "transactions"
+
+	name := "Alice"
+
+	results, err := module.GetBySenderOrReceiver(name, db, col)
+	if err != nil {
+		t.Fatalf("GetBySenderOrReceiver error: %v", err)
+	}
+
+	fmt.Printf("Ditemukan %d transaksi dengan sender/receiver %s:\n", len(results), name)
+	for _, tx := range results {
+		fmt.Printf("%+v\n", tx)
+	}
+}
