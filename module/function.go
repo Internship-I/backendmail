@@ -2,8 +2,10 @@ package module
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"math/rand"
+
 	// "regexp"
 	"time"
 
@@ -164,35 +166,144 @@ func GetByAddress(addressReceiver string, db *mongo.Database, col string) ([]mod
 	return transactions, nil
 }
 
-// GetBySenderOrReceiver retrieves transactions by either sender or receiver name
-func GetBySenderOrReceiver(name string, db *mongo.Database, col string) ([]model.Transaction, error) {
-	var transactions []model.Transaction
-	collection := db.Collection(col)
+// // GetBySenderOrReceiver retrieves transactions by either sender or receiver name
+// func GetBySenderOrReceiver(name string, db *mongo.Database, col string) ([]model.Transaction, error) {
+// 	var transactions []model.Transaction
+// 	collection := db.Collection(col)
 
-	filter := bson.M{
-		"$or": []bson.M{
-			{"sender_name": name},
-			{"receiver_name": name},
+// 	filter := bson.M{
+// 		"$or": []bson.M{
+// 			{"sender_name": name},
+// 			{"receiver_name": name},
+// 		},
+// 	}
+
+// 	cursor, err := collection.Find(context.TODO(), filter, options.Find())
+// 	if err != nil {
+// 		return nil, fmt.Errorf("gagal mendapatkan transaction: %w", err)
+// 	}
+// 	defer cursor.Close(context.TODO())
+
+// 	for cursor.Next(context.TODO()) {
+// 		var t model.Transaction
+// 		if err := cursor.Decode(&t); err != nil {
+// 			continue
+// 		}
+// 		transactions = append(transactions, t)
+// 	}
+
+// 	if len(transactions) == 0 {
+// 		return nil, fmt.Errorf("transaction dengan sender atau receiver %s tidak ditemukan", name)
+// 	}
+
+// 	return transactions, nil
+// }
+
+// FUNCTION USER
+// GetUserByID retrieves a user from the database by its ID
+func GetUserByID(_id primitive.ObjectID, db *mongo.Database, col string) (model.User, error) {
+	var user model.User
+	collection := db.Collection("User")
+	filter := bson.M{"_id": _id}
+	err := collection.FindOne(context.TODO(), filter).Decode(&user)
+	if err != nil {
+		if errors.Is(err, mongo.ErrNoDocuments) {
+			return user, fmt.Errorf("GetUserByID: user dengan ID %s tidak ditemukan", _id.Hex())
+		}
+		return user, fmt.Errorf("GetUserByID: gagal mendapatkan data user: %w", err)
+	}
+	return user, nil
+}
+
+func GetRoleByAdmin(db *mongo.Database, collection string, role string) (*model.User, error) {
+	var user model.User
+	filter := bson.M{"role": role}
+	opts := options.FindOne()
+
+	err := db.Collection(collection).FindOne(context.Background(), filter, opts).Decode(&user)
+	if err != nil {
+		return nil, err
+	}
+	return &user, nil
+}
+
+func GetByUsername(db *mongo.Database, col string, username string) (*model.User, error) {
+	var admin model.User
+	err := db.Collection(col).FindOne(context.Background(), bson.M{"username": username}).Decode(&admin)
+	if err == mongo.ErrNoDocuments {
+		return nil, nil
+	}
+	if err != nil {
+		return nil, err
+	}
+	return &admin, nil
+}
+
+func DeleteTokenFromMongoDB(db *mongo.Database, col string, token string) error {
+	collection := db.Collection(col)
+	filter := bson.M{"token": token}
+
+	_, err := collection.DeleteOne(context.Background(), filter)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// GetAllUser retrieves all users from the database
+func GetAllUser(db *mongo.Database, col string) ([]model.User, error) {
+	var data []model.User
+	user := db.Collection(col)
+
+	cursor, err := user.Find(context.TODO(), bson.M{})
+	if err != nil {
+		fmt.Println("GetAllUser error:", err)
+		return nil, err
+	}
+	defer cursor.Close(context.TODO()) // Selalu tutup cursor
+
+	if err := cursor.All(context.TODO(), &data); err != nil {
+		fmt.Println("Error decoding users:", err)
+		return nil, err
+	}
+
+	return data, nil
+}
+
+func SaveTokenToDatabase(db *mongo.Database, col string, adminID string, token string) error {
+	collection := db.Collection(col)
+	filter := bson.M{"admin_id": adminID}
+	update := bson.M{
+		"$set": bson.M{
+			"token":      token,
+			"updated_at": time.Now(),
 		},
 	}
-
-	cursor, err := collection.Find(context.TODO(), filter, options.Find())
+	_, err := collection.UpdateOne(context.Background(), filter, update, options.Update().SetUpsert(true))
 	if err != nil {
-		return nil, fmt.Errorf("gagal mendapatkan transaction: %w", err)
-	}
-	defer cursor.Close(context.TODO())
-
-	for cursor.Next(context.TODO()) {
-		var t model.Transaction
-		if err := cursor.Decode(&t); err != nil {
-			continue
-		}
-		transactions = append(transactions, t)
+		return err
 	}
 
-	if len(transactions) == 0 {
-		return nil, fmt.Errorf("transaction dengan sender atau receiver %s tidak ditemukan", name)
-	}
-
-	return transactions, nil
+	return nil
 }
+
+// InsertUser creates a user in the database
+func InsertUser(db *mongo.Database, col string, name string, phone string, username string, password string, role string) (insertedID primitive.ObjectID, err error) {
+
+	user := bson.M{
+		"name":        	name,
+		"phone_number": phone,
+		"username": 	username,
+		"password":    	password,
+		"role":    		role,
+	}
+	result, err := db.Collection(col).InsertOne(context.Background(), user)
+	if err != nil {
+		fmt.Printf("InsertUser: %v\n", err)
+		return
+	}
+	insertedID = result.InsertedID.(primitive.ObjectID)
+	return insertedID, nil
+}
+

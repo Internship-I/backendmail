@@ -92,20 +92,44 @@ func TestGetByAddress(t *testing.T) {
 	}
 }
 
-// TestGetBySenderOrReceiver
-func TestGetBySenderOrReceiver(t *testing.T) {
-	db := module.MongoConn
-	col := "transactions"
+// // TestGetBySenderOrReceiver
+// func TestGetBySenderOrReceiver(t *testing.T) {
+// 	db := module.MongoConn
+// 	col := "transactions"
 
-	name := "Alice"
+// 	name := "Alice"
 
-	results, err := module.GetBySenderOrReceiver(name, db, col)
-	if err != nil {
-		t.Fatalf("GetBySenderOrReceiver error: %v", err)
-	}
+// 	results, err := module.GetBySenderOrReceiver(name, db, col)
+// 	if err != nil {
+// 		t.Fatalf("GetBySenderOrReceiver error: %v", err)
+// 	}
 
-	fmt.Printf("Ditemukan %d transaksi dengan sender/receiver %s:\n", len(results), name)
-	for _, tx := range results {
-		fmt.Printf("%+v\n", tx)
-	}
+// 	fmt.Printf("Ditemukan %d transaksi dengan sender/receiver %s:\n", len(results), name)
+// 	for _, tx := range results {
+// 		fmt.Printf("%+v\n", tx)
+// 	}
+// }
+
+//FUNCTION USER
+func TestInsertUser(t *testing.T) {
+    // Test data
+	name := "Nida Sakina"
+    phone_number := "083174603834"
+    username := "Nidasakinaa"
+    password := "Nida150304"
+    role := "Admin"
+ 
+	 // Call the function
+	 insertedID, err := module.InsertUser(module.MongoConn, "User", name, phone_number, username, password, role)
+	 if err != nil {
+		 t.Fatalf("Error inserting user: %v", err)
+	 }
+ 
+	 // Print the result
+	 fmt.Printf("Data berhasil disimpan dengan id %s\n", insertedID.Hex())
 }
+
+// func TestGetAllUser(t *testing.T) {
+// 	data := module.GetAllUser(module.MongoConn, "User")
+// 	fmt.Println(data)
+// }
