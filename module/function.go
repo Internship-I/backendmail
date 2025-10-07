@@ -41,16 +41,17 @@ func GenerateConnote() string {
 	return fmt.Sprintf("P%s%07d", timestamp, randomNum)
 }
 
-func InsertTransaction(db *mongo.Database, col string, sender string, receiver string, addressReceiver string, phone string, item string, status string, codValue float64) (insertedID primitive.ObjectID, err error) {
+func InsertTransaction(db *mongo.Database, col string, sender string,sender_phone string, receiver string, addressReceiver string, receiver_phone string, item string, status string, codValue float64) (insertedID primitive.ObjectID, err error) {
 	now := primitive.NewDateTimeFromTime(time.Now())
 	connote := GenerateConnote()
 
 	transaction := bson.M{
 		"consignment_note": connote,
 		"sender_name":      sender,
+		"sender_phone": 	sender_phone,
 		"receiver_name":    receiver,
 		"address_receiver": addressReceiver,
-		"phone_number":     phone,
+		"receiver_phone":   receiver_phone,
 		"item_content":     item,
 		"delivery_status":  status,
 		"cod_value":        codValue,
@@ -227,6 +228,23 @@ func GetRoleByAdmin(db *mongo.Database, collection string, role string) (*model.
 	return &user, nil
 }
 
+func InsertUsers(db *mongo.Database, col string, fullname string, phonenumber string, username string, password string, role string) (insertedID primitive.ObjectID, err error) {
+	users := bson.M{
+		"fullname": fullname,
+		"phone":    phonenumber,
+		"username": username,
+		"password": password,
+		"role":     role,
+	}
+	result, err := db.Collection(col).InsertOne(context.Background(), users)
+	if err != nil {
+		fmt.Printf("InsertUser: %v\n", err)
+		return
+	}
+	insertedID = result.InsertedID.(primitive.ObjectID)
+	return insertedID, nil
+}
+
 func GetByUsername(db *mongo.Database, col string, username string) (*model.User, error) {
 	var admin model.User
 	err := db.Collection(col).FindOne(context.Background(), bson.M{"username": username}).Decode(&admin)
@@ -288,15 +306,14 @@ func SaveTokenToDatabase(db *mongo.Database, col string, adminID string, token s
 	return nil
 }
 
-// InsertUser creates a user in the database
+// InsertUser creates a new order in the database
 func InsertUser(db *mongo.Database, col string, name string, phone string, username string, password string, role string) (insertedID primitive.ObjectID, err error) {
-
 	user := bson.M{
-		"name":        	name,
-		"phone_number": phone,
-		"username": 	username,
-		"password":    	password,
-		"role":    		role,
+		"name":                    name,
+		"phone":                   phone,
+		"username":                username,
+		"password":                password,
+		"role":                    role,
 	}
 	result, err := db.Collection(col).InsertOne(context.Background(), user)
 	if err != nil {
@@ -305,5 +322,44 @@ func InsertUser(db *mongo.Database, col string, name string, phone string, usern
 	}
 	insertedID = result.InsertedID.(primitive.ObjectID)
 	return insertedID, nil
+}
+
+// UpdateUser updates an existing user in the database
+func UpdateUser(ctx context.Context, db *mongo.Database, col string, _id primitive.ObjectID, name string, phone string, username string, password string, role string) (err error) {
+	filter := bson.M{"_id": _id}
+	update := bson.M{
+		"$set": bson.M{
+			"name":     name,
+			"phone":    phone,
+			"username": username,
+			"password": password,
+			"role":     role,
+		},
+	}
+	result, err := db.Collection(col).UpdateOne(ctx, filter, update)
+	if err != nil {
+		return fmt.Errorf("UpdateUser: gagal memperbarui User: %w", err)
+	}
+	if result.MatchedCount == 0 {
+		return errors.New("UpdateUser: tidak ada data yang diubah dengan ID yang ditentukan")
+	}
+	return nil
+}
+
+// DeleteUserByID deletes a menu item from the database by its ID
+func DeleteUserByID(_id primitive.ObjectID, db *mongo.Database, col string) error {
+	user := db.Collection(col)
+	filter := bson.M{"_id": _id}
+
+	result, err := user.DeleteOne(context.TODO(), filter)
+	if err != nil {
+		return fmt.Errorf("error deleting data for ID %s: %s", _id, err.Error())
+	}
+
+	if result.DeletedCount == 0 {
+		return fmt.Errorf("data with ID %s not found", _id)
+	}
+
+	return nil
 }
 

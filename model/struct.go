@@ -10,9 +10,10 @@ type Transaction struct {
 	ID             	primitive.ObjectID `bson:"_id,omitempty" json:"id,omitempty"`
 	ConsigmentNote 	string             `bson:"connote,omitempty" json:"connote,omitempty"`
 	SenderName     	string             `bson:"sender_name,omitempty" json:"sender_name,omitempty"`
+	SenderPhone    	string             `bson:"sender_phone,omitempty" json:"sender_phone,omitempty"`
 	ReceiverName   	string             `bson:"receiver_name,omitempty" json:"receiver_name,omitempty"`
 	AddressReceiver string 			   `bson:"address_receiver,omitempty" json:"address_receiver,omitempty"`
-	PhoneNumber    	string             `bson:"phone_number,omitempty" json:"phone_number,omitempty"`
+	ReceiverPhone   string             `bson:"receiver_phone,omitempty" json:"receiver_phone,omitempty"`
 	ItemContent    	string             `bson:"item_content,omitempty" json:"item_content,omitempty"`
 	DeliveryStatus 	string             `bson:"delivery_status,omitempty" json:"delivery_status,omitempty"`
 	CODValue       	float64            `bson:"cod_value,omitempty" json:"cod_value,omitempty"`
