@@ -41,14 +41,14 @@ func GenerateConnote() string {
 	return fmt.Sprintf("P%s%07d", timestamp, randomNum)
 }
 
-func InsertTransaction(db *mongo.Database, col string, sender string,sender_phone string, receiver string, addressReceiver string, receiver_phone string, item string, status string, codValue float64) (insertedID primitive.ObjectID, err error) {
+func InsertTransaction(db *mongo.Database, col string, sender string, sender_phone string, receiver string, addressReceiver string, receiver_phone string, item string, status string, codValue float64) (insertedID primitive.ObjectID, connote string, err error) {
 	now := primitive.NewDateTimeFromTime(time.Now())
-	connote := GenerateConnote()
+	connote = GenerateConnote() // assign ke variabel global agar bisa direturn
 
 	transaction := bson.M{
 		"consignment_note": connote,
 		"sender_name":      sender,
-		"sender_phone": 	sender_phone,
+		"sender_phone":     sender_phone,
 		"receiver_name":    receiver,
 		"address_receiver": addressReceiver,
 		"receiver_phone":   receiver_phone,
@@ -61,15 +61,16 @@ func InsertTransaction(db *mongo.Database, col string, sender string,sender_phon
 
 	result, err := db.Collection(col).InsertOne(context.Background(), transaction)
 	if err != nil {
-		fmt.Printf("InsertTransaction error: %v\n", err)
-		return
+		fmt.Printf("❌ InsertTransaction error: %v\n", err)
+		return insertedID, connote, err
 	}
 
 	insertedID = result.InsertedID.(primitive.ObjectID)
-	fmt.Printf("✅ Data berhasil dimasukkan dengan ID: %v\n", insertedID)
+	fmt.Printf("✅ Data berhasil dimasukkan dengan ID: %v | Connote: %s\n", insertedID, connote)
 
-	return insertedID, nil
+	return insertedID, connote, nil
 }
+
 
 // GetAllTransaction retrieves all transaction from the database
 func GetAllTransaction(db *mongo.Database, col string) (data []model.Transaction) {

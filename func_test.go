@@ -9,17 +9,17 @@ import (
 )
 
 func TestInsertTransaction(t *testing.T) {
-	sender := "Muthia"
+	sender := "Raka"
 	sender_phone := "083174603834"
-	receiver := "Dara"
-	addressReceiver := "Jl. Ambon No. 123"
+	receiver := "Hana"
+	addressReceiver := "Jl. Aceh No. 123"
 	receiver_phone := "08123456789"
 	item := "Dokumen Penting"
 	status := "On Process"
 	codValue := 50000.0
 
 	// Call function
-	insertedID, err := module.InsertTransaction(module.MongoConn, "MailApp", sender, sender_phone, receiver, addressReceiver, receiver_phone, item, status, codValue)
+	insertedID, connote, err := module.InsertTransaction(module.MongoConn, "MailApp", sender, sender_phone, receiver, addressReceiver, receiver_phone, item, status, codValue)
 	if err != nil {
 		t.Errorf("InsertTransaction gagal: %v", err)
 	}
@@ -29,7 +29,7 @@ func TestInsertTransaction(t *testing.T) {
 		t.Errorf("InsertTransaction gagal, ObjectID kosong")
 	}
 
-	fmt.Printf("✅ TestInsertTransaction berhasil dengan ID: %v\n", insertedID)
+	fmt.Printf("✅ TestInsertTransaction berhasil dengan ID: %v | Connote: %s\n", insertedID, connote)
 }
 
 func TestGetAllTransaction(t *testing.T) {
