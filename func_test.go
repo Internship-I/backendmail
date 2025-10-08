@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"testing"
 
-	module "github.com/internship1/backendmail/module"
+	module "github.com/Internship-I/backendmail/module"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 

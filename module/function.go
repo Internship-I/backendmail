@@ -9,7 +9,7 @@ import (
 	// "regexp"
 	"time"
 
-	"github.com/internship1/backendmail/model"
+	"github.com/Internship-I/backendmail/model"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 

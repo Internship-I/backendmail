@@ -4,7 +4,7 @@ import (
 	"os"
 	"time"
 	"github.com/golang-jwt/jwt/v4"
-	"github.com/internship1/backendmail/model"
+	"github.com/Internship-I/backendmail/model"
 	"golang.org/x/crypto/bcrypt"
 )
 
