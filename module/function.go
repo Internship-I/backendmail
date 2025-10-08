@@ -118,9 +118,16 @@ func GetTransactionByConnote(connote string, db *mongo.Database, col string) ([]
 func GetByPhoneNumber(phone string, db *mongo.Database, col string) ([]model.Transaction, error) {
 	var transactions []model.Transaction
 	collection := db.Collection(col)
-	filter := bson.M{"phone_number": phone}
 
-	cursor, err := collection.Find(context.TODO(), filter, options.Find())
+	// Cari berdasarkan sender_phone atau receiver_phone
+	filter := bson.M{
+		"$or": []bson.M{
+			{"sender_phone": phone},
+			{"receiver_phone": phone},
+		},
+	}
+
+	cursor, err := collection.Find(context.TODO(), filter)
 	if err != nil {
 		return nil, fmt.Errorf("gagal mendapatkan transaction: %w", err)
 	}
@@ -134,18 +141,32 @@ func GetByPhoneNumber(phone string, db *mongo.Database, col string) ([]model.Tra
 		transactions = append(transactions, t)
 	}
 
+	if err := cursor.Err(); err != nil {
+		return nil, fmt.Errorf("error saat iterasi cursor: %w", err)
+	}
+
 	if len(transactions) == 0 {
-		return nil, fmt.Errorf("transaction dengan nomor hp %s tidak ditemukan", phone)
+		return nil, fmt.Errorf("transaction dengan nomor HP %s tidak ditemukan", phone)
 	}
 
 	return transactions, nil
 }
 
 // GetTransactionByAddress retrieves transactions by address
-func GetByAddress(addressReceiver string, db *mongo.Database, col string) ([]model.Transaction, error) {
+// GetTransactionByAddress retrieves transactions by address (sender or receiver) using regex search
+func GetByAddress(address string, db *mongo.Database, col string) ([]model.Transaction, error) {
 	var transactions []model.Transaction
 	collection := db.Collection(col)
-	filter := bson.M{"address_receiver": addressReceiver}
+
+	// Gunakan regex untuk pencarian sebagian (case-insensitive)
+	regex := primitive.Regex{Pattern: address, Options: "i"}
+
+	filter := bson.M{
+		"$or": []bson.M{
+			{"address_receiver": bson.M{"$regex": regex}},
+			{"address_sender": bson.M{"$regex": regex}},
+		},
+	}
 
 	cursor, err := collection.Find(context.TODO(), filter, options.Find())
 	if err != nil {
@@ -162,7 +183,7 @@ func GetByAddress(addressReceiver string, db *mongo.Database, col string) ([]mod
 	}
 
 	if len(transactions) == 0 {
-		return nil, fmt.Errorf("transaction dengan alamat %s tidak ditemukan", addressReceiver)
+		return nil, fmt.Errorf("tidak ditemukan transaksi dengan alamat mengandung '%s'", address)
 	}
 
 	return transactions, nil

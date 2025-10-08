@@ -9,14 +9,14 @@ import (
 )
 
 func TestInsertTransaction(t *testing.T) {
-	sender := "Raka"
-	sender_phone := "083174603834"
-	receiver := "Hana"
-	addressReceiver := "Jl. Aceh No. 123"
-	receiver_phone := "08123456789"
-	item := "Dokumen Penting"
-	status := "On Process"
-	codValue := 50000.0
+	sender := "Qinthar"
+	sender_phone := "082127854156"
+	receiver := "Hilwa"
+	addressReceiver := "Jl. Banda No.5"
+	receiver_phone := "085624064624"
+	item := "Makanan "
+	status := "Delivered"
+	codValue := 105000.0
 
 	// Call function
 	insertedID, connote, err := module.InsertTransaction(module.MongoConn, "MailApp", sender, sender_phone, receiver, addressReceiver, receiver_phone, item, status, codValue)
@@ -61,7 +61,7 @@ func TestGetByPhoneNumber(t *testing.T) {
 	col := "MailApp" // ganti sesuai nama collection
 
 	// Gunakan consignment note yang ada di database
-	phone := "083867818081" // ganti sesuai data nyata atau hasil InsertTransaction
+	phone := "082127854156" // ganti sesuai data nyata atau hasil InsertTransaction
 
 	transactions, err := module.GetByPhoneNumber(phone, db, col)
 	if err != nil {
@@ -77,19 +77,24 @@ func TestGetByPhoneNumber(t *testing.T) {
 // TestGetByAddress
 func TestGetByAddress(t *testing.T) {
 	db := module.MongoConn
-	col := "MailApp" // ganti sesuai nama collection
+	col := "MailApp"
+	testAddress := "Banda" // bisa match "Jl. Banda No. 5", "Banda Aceh", dll
 
-	// Gunakan consignment note yang ada di database
-	addressReceiver := "Jakarta" // ganti sesuai data nyata atau hasil InsertTransaction
-
-	transactions, err := module.GetByAddress(addressReceiver, db, col)
+	transactions, err := module.GetByAddress(testAddress, db, col)
 	if err != nil {
-		t.Fatalf("error calling GetByAddress: %v", err)
+		t.Errorf("Error memanggil GetByAddress: %v", err)
+		return
 	}
 
-	fmt.Printf("Ditemukan %d transaksi:\n", len(transactions))
-	for _, tx := range transactions {
-		fmt.Printf("%+v\n", tx)
+	if len(transactions) == 0 {
+		t.Errorf("Tidak ditemukan transaksi dengan alamat mengandung: %s", testAddress)
+		return
+	}
+
+	fmt.Printf("✅ Ditemukan %d transaksi yang mengandung '%s':\n", len(transactions), testAddress)
+	for i, tx := range transactions {
+		fmt.Printf("%d. Connote: %s | Sender: %s | Receiver: %s | Address: %s\n",
+			i+1, tx.ConsigmentNote, tx.SenderName, tx.ReceiverName, tx.AddressReceiver)
 	}
 }
 
