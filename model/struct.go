@@ -8,7 +8,7 @@ import (
 
 type Transaction struct {
 	ID             	primitive.ObjectID `bson:"_id,omitempty" json:"id,omitempty"`
-	ConsigmentNote 	string             `bson:"connote,omitempty" json:"connote,omitempty"`
+	ConsigmentNote 	string             `bson:"consignment_note,omitempty" json:"consignment_note,omitempty"`
 	SenderName     	string             `bson:"sender_name,omitempty" json:"sender_name,omitempty"`
 	SenderPhone    	string             `bson:"sender_phone,omitempty" json:"sender_phone,omitempty"`
 	ReceiverName   	string             `bson:"receiver_name,omitempty" json:"receiver_name,omitempty"`
