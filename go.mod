@@ -1,4 +1,4 @@
-module github.com/internship1/backendmail
+module github.com/Internship-I/backendmail
 
 go 1.23.3
 
